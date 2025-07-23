@@ -1,0 +1,22 @@
+# Render Blueprint 配置文件
+services:
+  - type: web
+    name: ai-learning-assistant  # 服务名称
+    runtime: node                # 使用 Node.js 环境
+    env: node                   # Node.js 环境
+    buildCommand: npm install    # 构建命令
+    startCommand: npm start      # 启动命令
+    envVars:
+      - key: DATABASE_URL        # 数据库连接字符串（自动从关联的数据库注入）
+        fromDatabase:
+          name: ai-learning-db  # 关联的数据库名称
+          property: connectionString
+    plan: free                  # 免费计划
+    region: oregon              # 选择地区（可选：oregon, frankfurt 等）
+
+databases:
+  - name: ai-learning-db        # 数据库名称（必须唯一）
+    databaseName: ai_learning   # PostgreSQL 数据库名
+    user: ai_learning_user      # 数据库用户名
+    plan: free                  # 免费计划
+    region: oregon              # 与 Web 服务相同的地区

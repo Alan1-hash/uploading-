@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summarizing Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-add {
+            background-color: #4CAF50;
+            color: white;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        
+        .btn-generate {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .btn-user {
+            background-color: #f1f1f1;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-user:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .btn-role {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+        
+        .btn-role:hover {
+            background-color: #d0e4f7;
+        }
+        
+        .logout-btn {
+            color: #666;
+            text-decoration: none;
+            margin-top: auto;
+            padding: 10px 0;
+            display: block;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .todo-item {
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+        
+        .important {
+            font-weight: bold;
+        }
+        
+        h1 {
+            margin: 0 0 20px 0;
+        }
+        
+        /* File list styles */
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            margin: 15px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        
+        .file-item {
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .file-actions {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .file-delete {
+            color: #ff4444;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #999;
+        }
+        
+        .selected-files {
+            margin-top: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .file-badge {
+            display: inline-block;
+            background-color: #f1f1f1;
+            padding: 3px 8px;
+            margin: 3px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        
+        .btn-upload {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+            padding: 10px 15px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn-upload.active {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h2>Chatlists</h2>
+        
+        <button class="btn btn-add" id="addBtn">Add</button>   
+        <div class="file-list" id="uploadedFiles">
+            <!-- File list will be populated by JavaScript -->
+        </div>
+        
+        <a href="#" class="logout-btn">Log Out</a>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1>Summarizing Page</h1>
+        
+        <div class="header">
+            <div class="user-info">
+                <button class="btn btn-user" id="userBtn">Shen Kai</button>
+                <button class="btn btn-role" id="roleBtn">Professor</button>
+            </div>
+            <button class="btn btn-generate" id="generateBtn">Generate</button>
+        </div>
+        
+        <!-- Content area would go here -->
+    </div>
+    
+    <!-- Upload File Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Document</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="upload-area" id="dropArea">
+                <p>Drag and drop files here or click to select</p>
+                <p><small>Multiple files supported</small></p>
+                <input type="file" id="fileInput" style="display: none;" multiple>
+            </div>
+            <div class="selected-files" id="selectedFiles">
+                <!-- Selected files will be shown here -->
+            </div>
+            <button class="btn btn-upload" id="uploadBtn" disabled>Upload</button>
+        </div>
+    </div>
+    
+    <script>
+        // DOM elements
+        const addBtn = document.getElementById('addBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const userBtn = document.getElementById('userBtn');
+        const roleBtn = document.getElementById('roleBtn');
+        const modal = document.getElementById('uploadModal');
+        const closeBtn = document.querySelector('.close');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('dropArea');
+        const uploadedFilesList = document.getElementById('uploadedFiles');
+        const selectedFilesList = document.getElementById('selectedFiles');
+        
+        // Sample uploaded files data
+        let uploadedFiles = [
+            { id: 1, name: 'Document1.pdf', date: '2023-05-15', size: '2.4 MB' },
+            { id: 2, name: 'Image1.jpg', date: '2023-05-10', size: '1.8 MB' },
+            { id: 3, name: 'Report.docx', date: '2023-05-05', size: '0.5 MB' },
+            { id: 4, name: 'Presentation.pptx', date: '2023-05-04', size: '5.2 MB' },
+            { id: 5, name: 'Budget.xlsx', date: '2023-05-03', size: '1.1 MB' }
+        ];
+
+        // Sample user data (would come from database in production)
+        const userData = {
+            name: "Shen Kai",
+            role: "Professor"
+        };
+
+        // Initialize user info from data
+        function initUserInfo() {
+            userBtn.textContent = userData.name;
+            roleBtn.textContent = userData.role;
+        }
+        
+        // Generate unique ID
+        function generateId() {
+            return Date.now();
+        }
+        
+        // Render uploaded files list
+        function renderUploadedFiles() {
+            uploadedFilesList.innerHTML = '';
+            if (uploadedFiles.length === 0) {
+                uploadedFilesList.innerHTML = '<p>No files uploaded yet</p>';
+                return;
+            }
+            
+            uploadedFiles.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div>${file.name}</div>
+                    <div class="file-actions">
+                        <span>${file.date} · ${file.size}</span>
+                        <span class="file-delete" data-id="${file.id}">×</span>
+                    </div>
+                `;
+                uploadedFilesList.appendChild(fileItem);
+            });
+            
+            // Add delete event listeners
+            document.querySelectorAll('.file-delete').forEach(deleteBtn => {
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const fileId = parseInt(this.getAttribute('data-id'));
+                    deleteFile(fileId);
+                });
+            });
+        }
+        
+        // Delete file
+        function deleteFile(fileId) {
+            if (confirm('Are you sure you want to delete this file?')) {
+                uploadedFiles = uploadedFiles.filter(file => file.id !== fileId);
+                renderUploadedFiles();
+            }
+        }
+        
+        // Render selected files
+        function renderSelectedFiles(files) {
+            selectedFilesList.innerHTML = '';
+            if (files.length === 0) {
+                selectedFilesList.innerHTML = '<p>No files selected</p>';
+                return;
+            }
+            
+            selectedFilesList.innerHTML = '<p>Selected files:</p>';
+            Array.from(files).forEach(file => {
+                const fileBadge = document.createElement('span');
+                fileBadge.className = 'file-badge';
+                fileBadge.textContent = file.name;
+                selectedFilesList.appendChild(fileBadge);
+            });
+        }
+        
+        // Update upload button state
+        function updateUploadButtonState() {
+            if (fileInput.files && fileInput.files.length > 0) {
+                uploadBtn.classList.add('active');
+                uploadBtn.disabled = false;
+            } else {
+                uploadBtn.classList.remove('active');
+                uploadBtn.disabled = true;
+            }
+        }
+        
+        // Update drop area text
+        function updateDropAreaText() {
+            if (fileInput.files.length > 0) {
+                const fileCount = fileInput.files.length;
+                dropArea.innerHTML = `<p>${fileCount} file(s) selected</p><small>Multiple files supported</small>`;
+                renderSelectedFiles(fileInput.files);
+            } else {
+                dropArea.innerHTML = '<p>Drag and drop files here or click to select</p><small>Multiple files supported</small>';
+                renderSelectedFiles([]);
+            }
+            updateUploadButtonState();
+        }
+        
+        // Initial render
+        initUserInfo();
+        renderUploadedFiles();
+        renderSelectedFiles([]);
+        updateUploadButtonState();
+        
+        // Event listeners
+        addBtn.addEventListener('click', () => {
+            modal.style.display = 'block';
+        });
+        
+        generateBtn.addEventListener('click', () => {
+            alert('Generate function will be implemented');
+        });
+        
+        // These would be connected to database in production
+        userBtn.addEventListener('click', () => {
+            alert('User info would be loaded from database');
+        });
+        
+        roleBtn.addEventListener('click', () => {
+            alert('Role info would be loaded from database');
+        });
+        
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        dropArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#4CAF50';
+        });
+        
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.borderColor = '#ccc';
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#ccc';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateDropAreaText();
+            }
+        });
+        
+        fileInput.addEventListener('change', updateDropAreaText);
+        
+        uploadBtn.addEventListener('click', () => {
+            const files = fileInput.files;
+            
+            if (files && files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const fileSize = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+                    const uploadDate = new Date().toISOString().split('T')[0];
+                    
+                    uploadedFiles.unshift({
+                        id: generateId(),
+                        name: file.name,
+                        date: uploadDate,
+                        size: fileSize
+                    });
+                });
+                
+                renderUploadedFiles();
+                alert(`Successfully uploaded ${files.length} file(s)!`);
+                
+                // Reset UI
+                modal.style.display = 'none';
+                fileInput.value = '';
+                dropArea.innerHTML = '<p>Drag and drop files here or click to select</p><small>Multiple files supported</small>';
+                renderSelectedFiles([]);
+                updateUploadButtonState();
+            }
+        });
+    </script>
+</body>
+</html>
